@@ -1286,6 +1286,17 @@ document.addEventListener('DOMContentLoaded', () => {
   initAuthUI();
   initDashboard();
 
+  const sectionFromHash = window.location.hash.slice(1);
+  const validSections = new Set(['dashboard', 'pca', 'models', 'predictor', 'map']);
+  if (validSections.has(sectionFromHash)) {
+    navigateToSection(sectionFromHash);
+  }
+
+  window.addEventListener('hashchange', () => {
+    const section = window.location.hash.slice(1);
+    if (validSections.has(section)) navigateToSection(section);
+  });
+
   // set initial aria-current on active nav
   const activeNav = document.querySelector('.nav-item.active');
   if (activeNav) activeNav.setAttribute('aria-current', 'true');

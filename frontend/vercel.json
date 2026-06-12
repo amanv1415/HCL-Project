@@ -2,6 +2,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/predict", "destination": "/dashboard.html" },
     { "source": "/login", "destination": "/login.html" },
     { "source": "/register", "destination": "/register.html" }
   ],

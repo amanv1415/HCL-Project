@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
           remember_me: loginForm.remember_me?.checked || false,
         });
         saveSession(data);
-        window.location.href = '/';
+        window.location.href = '/dashboard.html';
       } catch (err) {
         showFlash(err.message);
       } finally {
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
           password2: registerForm.password2.value,
         });
         saveSession(data);
-        window.location.href = '/';
+        window.location.href = '/dashboard.html';
       } catch (err) {
         showFlash(err.message);
       } finally {
