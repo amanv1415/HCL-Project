@@ -124,7 +124,7 @@ real_estate_project/
 └── DEPLOYMENT.md                  # Additional deployment notes
 ```
 
-## 🤖 Machine Learning Models Used
+## 🤖✅  Machine Learning Models Used
 
 The training pipeline uses an 80/20 train/test split with `random_state=42`. Categorical market and sector fields are label-encoded, and all 21 model features are standardized before training.
 
