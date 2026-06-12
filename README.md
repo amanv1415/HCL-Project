@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🏙️ Urban Real Estate Intelligence
+#  Urban Real Estate Intelligence
 
 ### Property valuation analytics across metro micro-markets using PCA and ensemble regression
 
