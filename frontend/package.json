@@ -3,7 +3,10 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "build": "node scripts/build-config.js",
-    "dev": "npm run build && npx serve . -l 3000"
+    "build": "vite build",
+    "dev": "vite"
+  },
+  "dependencies": {
+    "vite": "^8.0.16"
   }
 }

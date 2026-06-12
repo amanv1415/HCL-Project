@@ -18,8 +18,8 @@ This project is split into:
 3. Render reads `render.yaml` and creates:
    - Web service: `urei-api`
    - PostgreSQL database: `urei-db`
-4. After deploy, set environment variable:
-   - `FRONTEND_URL` = your Vercel URL (e.g. `https://urei.vercel.app`)
+4. Render sets the production frontend origin from `render.yaml`:
+   - `FRONTEND_URL` = `https://urei-chi.vercel.app`
 
 ### Option B — Manual Web Service
 
@@ -35,9 +35,9 @@ This project is split into:
 | `FLASK_APP` | `wsgi:app` |
 | `SECRET_KEY` | long random string |
 | `DATABASE_URL` | PostgreSQL connection string |
-| `FRONTEND_URL` | your Vercel frontend URL |
+| `FRONTEND_URL` | `https://urei-chi.vercel.app` |
 
-4. Note your API URL, e.g. `https://urei-api.onrender.com`
+4. Production API URL: `https://hcl-project-89ks.onrender.com`
 
 ### API endpoints
 
@@ -57,9 +57,9 @@ This project is split into:
 
 | Variable | Value |
 |----------|-------|
-| `API_URL` | your Render API URL (e.g. `https://urei-api.onrender.com`) |
+| `VITE_API_URL` | `https://hcl-project-89ks.onrender.com` |
 
-4. Deploy. Vercel runs `npm run build` which generates `js/config.js` with your API URL.
+4. Deploy. Vercel runs `npm run build`; the frontend reads `VITE_API_URL` at build time.
 
 ### Routes
 
@@ -73,15 +73,15 @@ This project is split into:
 
 After both are live:
 
-1. **Render:** set `FRONTEND_URL` to your Vercel URL (no trailing slash).
-2. **Vercel:** set `API_URL` to your Render URL (no trailing slash).
+1. **Render:** set `FRONTEND_URL` to `https://urei-chi.vercel.app` (no trailing slash).
+2. **Vercel:** set `VITE_API_URL` to `https://hcl-project-89ks.onrender.com` (no trailing slash).
 3. Redeploy both services.
 
 CORS is configured on the backend using `FRONTEND_URL`.
 
 ---
 
-## 4. Local Development
+## 4. Development
 
 ### Backend
 
@@ -94,18 +94,17 @@ flask db upgrade
 python app.py
 ```
 
-API runs at `http://localhost:5000`
+The deployed API runs at `https://hcl-project-89ks.onrender.com`.
 
 ### Frontend
 
 ```bash
 cd frontend
-cp js/config.example.js js/config.js
-# Edit js/config.js → API_BASE: 'http://localhost:5000'
-npm run dev
+npm install
+npm run build
 ```
 
-Frontend runs at `http://localhost:3000`
+The deployed frontend runs at `https://urei-chi.vercel.app`.
 
 ---
 

@@ -8,8 +8,9 @@ __pycache__/
 .DS_Store
 instance/
 frontend/js/config.js
+frontend/dist/
+frontend/node_modules/
 models/*.pkl
 models/random_forest.pkl
 
 models/stacking_ensemble.pkl
-

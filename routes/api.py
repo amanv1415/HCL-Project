@@ -100,7 +100,7 @@ def api_predict():
     try:
         ensure_artifacts()
 
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
         le_market = _artifacts.get('le_market')
         le_sector = _artifacts.get('le_sector')
         scaler = _artifacts.get('scaler')

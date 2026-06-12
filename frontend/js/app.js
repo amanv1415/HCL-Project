@@ -5,20 +5,9 @@
  * charts, maps, and the valuation predictor.
  */
 
+import { API_BASE_URL, apiRequest } from './api.js';
+
 // ── Globals ──
-const API = (window.APP_CONFIG && window.APP_CONFIG.API_BASE) || '';
-
-function getAuthToken() {
-  return localStorage.getItem('urei_token');
-}
-
-function getAuthHeaders(extra = {}) {
-  const headers = { ...extra };
-  const token = getAuthToken();
-  if (token) headers.Authorization = `Bearer ${token}`;
-  return headers;
-}
-
 function clearAuth() {
   localStorage.removeItem('urei_token');
   localStorage.removeItem('urei_user');
@@ -153,18 +142,41 @@ document.querySelectorAll('.nav-item').forEach(item => {
 
 // ── Fetch helper ──
 async function fetchJSON(url, options = {}) {
-  const res = await fetch(API + url, {
-    ...options,
-    headers: getAuthHeaders({
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    }),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `Request failed (${res.status})`);
+  return apiRequest(url, options);
+}
+
+function setStatus(message, state = 'ready') {
+  const badge = document.getElementById('status-badge');
+  if (!badge) return;
+  badge.innerHTML = `<span class="status-dot"></span> ${message}`;
+  badge.dataset.state = state;
+}
+
+function showDashboardError(message) {
+  document.querySelectorAll('.skeleton').forEach(s => { s.style.display = 'none'; });
+  const section = document.getElementById('section-dashboard');
+  if (!section) return;
+
+  let errorEl = document.getElementById('dashboard-error');
+  if (!errorEl) {
+    errorEl = document.createElement('div');
+    errorEl.id = 'dashboard-error';
+    errorEl.className = 'error-state';
+    errorEl.innerHTML = `
+      <div class="error-state-title">Dashboard data is unavailable</div>
+      <div class="error-state-text" id="dashboard-error-text"></div>
+      <button type="button" class="btn-retry" id="dashboard-retry">Retry</button>
+    `;
+    section.prepend(errorEl);
+    document.getElementById('dashboard-retry')?.addEventListener('click', () => {
+      errorEl.classList.remove('visible');
+      initDashboard();
+    });
   }
-  return res.json();
+
+  document.getElementById('dashboard-error-text').textContent =
+    `${message} API: ${API_BASE_URL}`;
+  errorEl.classList.add('visible');
 }
 
 // ── Format currency ──
@@ -176,22 +188,29 @@ function formatEUR(val) {
 async function initDashboard() {
   // show skeleton overlays while fetching data
   document.querySelectorAll('.skeleton').forEach(s => { if (s.dataset.skelFor !== 'result-card') s.style.display = 'block'; });
+  setStatus('Loading Models', 'loading');
 
-  const [summary, metrics, pcaData, predictions] = await Promise.all([
-    fetchJSON('/api/summary'),
-    fetchJSON('/api/metrics'),
-    fetchJSON('/api/pca'),
-    fetchJSON('/api/predictions'),
-  ]);
+  try {
+    const [summary, metrics, pcaData, predictions] = await Promise.all([
+      fetchJSON('/api/summary'),
+      fetchJSON('/api/metrics'),
+      fetchJSON('/api/pca'),
+      fetchJSON('/api/predictions'),
+    ]);
 
-  renderOverview(summary, metrics);
-  renderPCA(pcaData);
-  renderModels(metrics, predictions);
-  initPredictor();
-  await buildSearchIndex(summary, metrics);
+    renderOverview(summary, metrics);
+    renderPCA(pcaData);
+    renderModels(metrics, predictions);
+    initPredictor();
+    await buildSearchIndex(summary, metrics);
 
-  // hide any remaining skeletons (chart canvases are hidden inside createChart)
-  document.querySelectorAll('.skeleton').forEach(s => { if (s.dataset.skelFor !== 'result-card') s.style.display = 'none'; });
+    // hide any remaining skeletons (chart canvases are hidden inside createChart)
+    document.querySelectorAll('.skeleton').forEach(s => { if (s.dataset.skelFor !== 'result-card') s.style.display = 'none'; });
+    setStatus('Models Loaded', 'ready');
+  } catch (err) {
+    setStatus('API Unavailable', 'error');
+    showDashboardError(err.message);
+  }
 
   // Map is initialized lazily when its tab is first opened (canvas needs visible dimensions)
 }
@@ -503,12 +522,10 @@ function initPredictor() {
       document.getElementById('result-empty').style.display = 'none';
       document.getElementById('result-content').style.display = 'none';
 
-      const res = await fetch(API + '/api/predict', {
+      const result = await fetchJSON('/api/predict', {
         method: 'POST',
-        headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(payload),
       });
-      const result = await res.json();
 
       // hide skeleton and reset button
       if (resultSkel) { resultSkel.style.display = 'none'; }
@@ -558,7 +575,12 @@ function initPredictor() {
     } catch (e) {
       if (resultSkel) { resultSkel.style.display = 'none'; }
       if (btn) { btn.classList.remove('loading'); btn.disabled = false; }
-      alert('Prediction failed: ' + e.message);
+      
+      document.getElementById('result-empty').style.display = 'none';
+      document.getElementById('result-content').style.display = 'block';
+      document.getElementById('result-value').textContent = 'Error';
+      document.getElementById('result-confidence').textContent = '⚠ ' + e.message;
+      document.getElementById('result-details').innerHTML = '<div style="color:var(--danger)">Failed to estimate valuation. Please try again later.</div>';
     }
   });
 }
@@ -570,7 +592,15 @@ let mapData = [];
 
 async function initMap() {
   if (mapData.length === 0) {
-    mapData = await fetchJSON('/api/data?n=2500');
+    try {
+      mapData = await fetchJSON('/api/data?n=2500');
+    } catch (err) {
+      mapData = [];
+      document.getElementById('map-count').textContent = 'Map data unavailable';
+      const mapSkel = document.querySelector('[data-skel-for="map-canvas"]');
+      if (mapSkel) mapSkel.style.display = 'none';
+      setStatus('API Unavailable', 'error');
+    }
   }
 
   const canvas = document.getElementById('map-canvas');
@@ -1165,7 +1195,7 @@ async function initAuthUI() {
     return;
   }
 
-  if (!getAuthToken()) return;
+  if (!localStorage.getItem('urei_token')) return;
 
   try {
     const data = await fetchJSON('/api/auth/me');

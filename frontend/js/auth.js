@@ -1,4 +1,4 @@
-const API = (window.APP_CONFIG && window.APP_CONFIG.API_BASE) || '';
+import { apiRequest } from './api.js';
 
 function showFlash(message, type = 'danger') {
   const container = document.getElementById('auth-flash');
@@ -20,18 +20,15 @@ function clearFieldErrors() {
 }
 
 async function submitAuth(endpoint, payload) {
-  const res = await fetch(`${API}${endpoint}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
-
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    if (data.fields) showFieldErrors(data.fields);
-    throw new Error(data.error || 'Request failed');
+  try {
+    return await apiRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  } catch (error) {
+    if (error.data?.fields) showFieldErrors(error.data.fields);
+    throw error;
   }
-  return data;
 }
 
 function saveSession(data) {
@@ -49,7 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
       clearFieldErrors();
 
       const submitBtn = loginForm.querySelector('.auth-submit');
+      const originalText = submitBtn.textContent;
       submitBtn.disabled = true;
+      submitBtn.textContent = 'Signing in...';
 
       try {
         const data = await submitAuth('/api/auth/login', {
@@ -63,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showFlash(err.message);
       } finally {
         submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
       }
     });
   }
@@ -73,7 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
       clearFieldErrors();
 
       const submitBtn = registerForm.querySelector('.auth-submit');
+      const originalText = submitBtn.textContent;
       submitBtn.disabled = true;
+      submitBtn.textContent = 'Creating account...';
 
       try {
         const data = await submitAuth('/api/auth/register', {
@@ -88,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showFlash(err.message);
       } finally {
         submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
       }
     });
   }

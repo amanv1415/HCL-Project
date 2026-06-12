@@ -14,7 +14,7 @@ def get_database_url():
 def get_cors_origins():
     origins = os.environ.get(
         'FRONTEND_URL',
-        'http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173',
+        'https://urei-chi.vercel.app',
     )
     return [origin.strip() for origin in origins.split(',') if origin.strip()]
 
@@ -25,7 +25,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MIGRATION_DIR = 'migrations'
 
-    FRONTEND_URL = os.environ.get('FRONTEND_URL', 'http://localhost:3000')
+    FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://urei-chi.vercel.app')
     JWT_EXPIRY_HOURS = int(os.environ.get('JWT_EXPIRY_HOURS', '24'))
     JWT_REMEMBER_DAYS = int(os.environ.get('JWT_REMEMBER_DAYS', '30'))
 

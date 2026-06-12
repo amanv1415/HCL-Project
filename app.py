@@ -1,7 +1,8 @@
 import os
 
-from flask import Flask
+from flask import Flask, jsonify, request
 from flask_cors import CORS
+from werkzeug.exceptions import HTTPException
 
 from config import config_by_name, get_cors_origins
 from extensions import db, migrate, login_manager
@@ -18,8 +19,10 @@ def create_app(config_name=None):
 
     CORS(
         app,
-        resources={r'/api/*': {'origins': get_cors_origins()}},
-        supports_credentials=False,
+        resources={r"/api/*": {"origins": get_cors_origins()}},
+        methods=['GET', 'POST', 'OPTIONS'],
+        allow_headers=['Content-Type', 'Authorization'],
+        expose_headers=['Content-Type'],
     )
 
     db.init_app(app)
@@ -33,6 +36,22 @@ def create_app(config_name=None):
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp)
     app.register_blueprint(auth_api_bp)
+
+    @app.errorhandler(404)
+    def not_found(error):
+        if request.path.startswith('/api/'):
+            return jsonify({'error': 'API route not found'}), 404
+        return jsonify({'error': 'Route not found'}), 404
+
+    @app.errorhandler(Exception)
+    def unhandled_error(error):
+        if isinstance(error, HTTPException):
+            return jsonify({'error': error.description}), error.code
+
+        app.logger.exception('Unhandled request error')
+        if request.path.startswith('/api/'):
+            return jsonify({'error': 'Internal server error'}), 500
+        return jsonify({'error': 'Internal server error'}), 500
 
     return app
 
