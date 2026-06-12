@@ -472,10 +472,12 @@ The live application is available at [urei-chi.vercel.app](https://urei-chi.verc
 - Add monitoring for prediction drift, model quality, and API health
 - Add Docker-based local and production deployment
 
-## 👤 Author
+## 👤 Team Members: 
+GitHub: 
+[@amanv1415](https://github.com/amanv1415)
+[@Garimasingh10](https://github.com/Garimasingh10)
 
-**Aman**  
-GitHub: [@amanv1415](https://github.com/amanv1415)
+
 
 ## 📄 License
 
