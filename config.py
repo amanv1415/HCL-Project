@@ -26,6 +26,7 @@ class Config:
     MIGRATION_DIR = 'migrations'
 
     FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://urei-chi.vercel.app')
+    AUTO_CREATE_DB = os.environ.get('AUTO_CREATE_DB', 'true').lower() == 'true'
     JWT_EXPIRY_HOURS = int(os.environ.get('JWT_EXPIRY_HOURS', '24'))
     JWT_REMEMBER_DAYS = int(os.environ.get('JWT_REMEMBER_DAYS', '30'))
 

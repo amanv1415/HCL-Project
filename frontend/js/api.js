@@ -1,8 +1,21 @@
 const PRODUCTION_API_URL = 'https://hcl-project-89ks.onrender.com';
 const DEFAULT_TIMEOUT_MS = 10000;
+const STALE_API_HOSTS = new Set([
+  'urban-real-estate.onrender.com',
+]);
 
 function normalizeBaseUrl(url) {
-  return (url || PRODUCTION_API_URL).trim().replace(/\/+$/, '');
+  const candidate = (url || PRODUCTION_API_URL).trim().replace(/\/+$/, '');
+
+  try {
+    const parsed = new URL(candidate);
+    if (parsed.protocol !== 'https:' || STALE_API_HOSTS.has(parsed.host)) {
+      return PRODUCTION_API_URL;
+    }
+    return candidate;
+  } catch (error) {
+    return PRODUCTION_API_URL;
+  }
 }
 
 export const API_BASE_URL = normalizeBaseUrl(import.meta.env.VITE_API_URL);

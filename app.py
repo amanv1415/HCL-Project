@@ -37,6 +37,13 @@ def create_app(config_name=None):
     app.register_blueprint(api_bp)
     app.register_blueprint(auth_api_bp)
 
+    if app.config.get('AUTO_CREATE_DB', True):
+        with app.app_context():
+            try:
+                db.create_all()
+            except Exception:
+                app.logger.exception('Database initialization failed')
+
     @app.errorhandler(404)
     def not_found(error):
         if request.path.startswith('/api/'):
